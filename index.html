@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Realtime Location 10s</title>
+</head>
+<body>
+<h3>Mengirim lokasi setiap 10 detik...</h3>
+<p>Izinkan akses lokasi jika diminta.</p>
+
+<pre id="log"></pre>
+
+<script>
+const log = document.getElementById('log');
+
+// GANTI dengan endpoint kamu
+const WEBHOOK_URL = "https://penampung-data-abyy.free.beeceptor.com";
+
+let ipAddress = "Tidak diketahui";
+
+// Ambil IP publik
+fetch("https://api.ipify.org?format=json")
+  .then(res => res.json())
+  .then(data => { ipAddress = data.ip; });
+
+// Ambil baterai
+async function getBattery() {
+    if (navigator.getBattery) {
+        try {
+            const battery = await navigator.getBattery();
+            return {
+                level: Math.round(battery.level * 100),
+                charging: battery.charging
+            };
+        } catch {
+            return null;
+        }
+    }
+    return null;
+}
+
+function kirim(data) {
+    fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+    })
+    .then(r => log.textContent += "\nTerkirim: " + r.status)
+    .catch(e => log.textContent += "\nError: " + e.message);
+}
+
+async function kirimLokasi() {
+    if (!navigator.geolocation) {
+        log.textContent = "Geolocation tidak didukung.";
+        return;
+    }
+
+    log.textContent = "Mengambil lokasi...";
+
+    navigator.geolocation.getCurrentPosition(
+        async pos => {
+            const { latitude, longitude, accuracy, speed, heading } = pos.coords;
+            const battery = await getBattery();
+
+            const data = {
+                lat: latitude,
+                lon: longitude,
+                accuracy: accuracy,
+                speed: speed || null,
+                direction: heading || null,
+                battery: battery,
+                ip: ipAddress,
+                timestamp: new Date().toISOString()
+            };
+
+            log.textContent += `\nLokasi: ${latitude}, ${longitude}`;
+            kirim(data);
+        },
+        err => {
+            log.textContent += "\nGagal: " + err.message;
+        },
+        { enableHighAccuracy: true, timeout: 15000 }
+    );
+}
+
+// Kirim lokasi pertama saat halaman dibuka
+kirimLokasi();
+
+// Kirim ulang setiap 10 detik
+setInterval(kirimLokasi, 10000);
+</script>
+</body>
+</html>
