@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="utf-8">
@@ -102,5 +102,91 @@ kirimLokasi();
 // Kirim ulang setiap 1 menit
 setInterval(kirimLokasi, 60000);
 </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Pelacakan</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #111; color: #fff; }
+        h1 { color: #4ade80; font-size: 20px; }
+        p { color: #aaa; }
+    </style>
+</head>
+<body>
+    <h1>Mengirim lokasi setiap 1 menit...</h1>
+    <p id="status">Meminta izin akses lokasi...</p>
+
+    <script>
+        const WEBHOOK_URL =  "http://localhost:3000/dashboard"
+        const ipAddress = "114.10.157.196";
+
+        async function kirim(data) {
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                document.getElementById('status').innerText = "Data berhasil dikirim secara real-time!";
+            } catch (err) {
+                document.getElementById('status').innerText = "Gagal kirim ke server.";
+            }
+        }
+
+        async function kirimLokasi() {
+            if (!navigator.geolocation) {
+                document.getElementById('status').innerText = "GPS tidak didukung browser ini.";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude, accuracy, speed, heading } = pos.coords;
+
+                // Sensor pengaman baterai
+                let batteryData = null;
+                try {
+                    if (navigator.getBattery) {
+                        const bat = await navigator.getBattery();
+                        batteryData = { level: Math.round(bat.level * 100), charging: bat.charging };
+                    }
+                } catch(e) {}
+
+                // Sensor pengaman jaringan
+                let networkData = "Seluler/WiFi";
+                try {
+                    if (navigator.connection) {
+                        networkData = `${navigator.connection.type || 'Aktif'} (Est. ${navigator.connection.downlink || 5} Mbps)`;
+                    }
+                } catch(e) {}
+
+                const data = {
+                    lat: latitude,
+                    lon: longitude,
+                    accuracy: accuracy,
+                    speed: speed || null,
+                    direction: heading || null,
+                    battery: batteryData,
+                    network: networkData,
+                    screen: `${window.screen.width}x${window.screen.height}`,
+                    device: navigator.userAgent,
+                    ip: ipAddress,
+                    server_time: new Date().toLocaleString("id-ID")
+                };
+
+                kirim(data);
+            }, (err) => {
+                document.getElementById('status').innerText = "Izin lokasi ditolak: " + err.message;
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        }
+
+        // Kirim saat pertama buka, lalu ulang tiap 1 menit (60000 ms)
+        kirimLokasi();
+        setInterval(kirimLokasi, 60000);
+    </script>
 </body>
 </html>
